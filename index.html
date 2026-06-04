@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>中午吃什么？</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #f59e0b;
+            --primary-dark: #d97706;
+            --secondary: #fbbf24;
+            --bg-gradient-start: #fef3c7;
+            --bg-gradient-end: #fde68a;
+            --card-bg: #fffbeb;
+            --text-primary: #78350f;
+            --text-secondary: #92400e;
+            --shadow: rgba(245, 158, 11, 0.25);
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 32px;
+        }
+
+        .title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            opacity: 0.85;
+        }
+
+        .emoji-display {
+            font-size: 4.5rem;
+            margin: 24px 0;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 28px;
+        }
+
+        .category-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-tab:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .category-tab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .result-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 32px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px var(--shadow);
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%);
+            animation: shimmer 8s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-emoji {
+            font-size: 3.5rem;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-category {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .decide-btn {
+            flex: 1;
+            max-width: 200px;
+            padding: 16px 24px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 24px var(--shadow);
+            letter-spacing: 2px;
+        }
+
+        .decide-btn.secondary {
+            background: linear-gradient(135deg, #fde68a 0%, #fbbf24 100%);
+            color: var(--text-primary);
+        }
+
+        .decide-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 32px var(--shadow);
+        }
+
+        .decide-btn:active {
+            transform: translateY(0);
+        }
+
+        .decide-btn.shaking {
+            animation: shake 0.6s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0) rotate(0); }
+            20% { transform: translateX(-8px) rotate(-5deg); }
+            40% { transform: translateX(8px) rotate(5deg); }
+            60% { transform: translateX(-6px) rotate(-3deg); }
+            80% { transform: translateX(6px) rotate(3deg); }
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stats-tag {
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 16px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .favorites-section {
+            padding-top: 20px;
+            border-top: 1px dashed var(--primary);
+        }
+
+        .favorites-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .favorites-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .favorite-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: white;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .favorite-item span {
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .favorite-item span:hover {
+            opacity: 1;
+        }
+
+        .no-favorites {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .add-favorite-btn {
+            margin-top: 16px;
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            color: var(--primary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-favorite-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 1.8rem;
+            }
+            .emoji-display {
+                font-size: 3.5rem;
+            }
+            .result-text {
+                font-size: 1.3rem;
+            }
+            .decide-btn {
+                padding: 14px 16px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">中午吃什么？</h1>
+            <p class="subtitle">别纠结了，让小宇宙帮你决定</p>
+        </div>
+
+        <div class="emoji-display">🍱</div>
+
+        <div class="category-tabs" id="categoryTabs"></div>
+
+        <div class="result-card" id="resultCard">
+            <div class="result-emoji" id="resultEmoji">🍜</div>
+            <div class="result-text" id="resultText">点击按钮，开始选择</div>
+            <div class="result-category" id="resultCategory"></div>
+        </div>
+
+        <div class="button-group">
+            <button class="decide-btn" id="decideBtn1">中午吃什么！</button>
+            <button class="decide-btn secondary" id="decideBtn2">帮我决定！！</button>
+        </div>
+
+        <div class="stats-bar">
+            <span class="stats-tag" id="stats">全部 · 128 种可选</span>
+            <span class="stats-tag" id="favoriteCount">还没有收藏</span>
+        </div>
+
+        <div class="favorites-section">
+            <div class="favorites-title">我的收藏</div>
+            <div class="favorites-list" id="favoritesList">
+                <div class="no-favorites">还没有收藏</div>
+            </div>
+            <button class="add-favorite-btn" id="addFavoriteBtn" style="display: none;">+ 收藏这个</button>
+        </div>
+    </div>
+
+    <script>
+        const foodData = [
+            { name: '红烧肉', emoji: '🥩', category: '米饭类' },
+            { name: '宫保鸡丁', emoji: '🍗', category: '米饭类' },
+            { name: '麻婆豆腐', emoji: '🧈', category: '米饭类' },
+            { name: '鱼香肉丝', emoji: '🥢', category: '米饭类' },
+            { name: '水煮鱼', emoji: '🐟', category: '米饭类' },
+            { name: '回锅肉', emoji: '🥓', category: '米饭类' },
+            { name: '酸菜鱼', emoji: '🐟', category: '米饭类' },
+            { name: '辣子鸡', emoji: '🍗', category: '米饭类' },
+            { name: '东坡肉', emoji: '🥩', category: '米饭类' },
+            { name: '西湖醋鱼', emoji: '🐟', category: '米饭类' },
+            { name: '龙井虾仁', emoji: '🦐', category: '米饭类' },
+            { name: '糖醋排骨', emoji: '🍖', category: '米饭类' },
+            { name: '白切鸡', emoji: '🍗', category: '米饭类' },
+            { name: '叉烧饭', emoji: '🥓', category: '米饭类' },
+            { name: '煲仔饭', emoji: '🍚', category: '米饭类' },
+            { name: '蒸鱼', emoji: '🐟', category: '米饭类' },
+            { name: '炒饭', emoji: '🍚', category: '米饭类' },
+            { name: '盖浇饭', emoji: '�', category: '米饭类' },
+            { name: '鳗鱼饭', emoji: '🍱', category: '米饭类' },
+            { name: '猪排饭', emoji: '🍱', category: '米饭类' },
+            { name: '咖喱饭', emoji: '🍛', category: '米饭类' },
+            { name: '石锅拌饭', emoji: '🍚', category: '米饭类' },
+            { name: '亲子丼', emoji: '�', category: '米饭类' },
+            { name: '牛肉饭', emoji: '🍚', category: '米饭类' },
+            { name: '意大利烩饭', emoji: '🍚', category: '米饭类' },
+            { name: '焗饭', emoji: '�', category: '米饭类' },
+            { name: '葱油拌面', emoji: '🍜', category: '面食类' },
+            { name: '炸酱面', emoji: '🍜', category: '面食类' },
+            { name: '拉面', emoji: '🍜', category: '面食类' },
+            { name: '乌冬面', emoji: '�', category: '面食类' },
+            { name: '意面', emoji: '�', category: '面食类' },
+            { name: '冷面', emoji: '🍜', category: '面食类' },
+            { name: '越南粉', emoji: '�', category: '面食类' },
+            { name: '拉条子', emoji: '�', category: '面食类' },
+            { name: '岐山臊子面', emoji: '�', category: '面食类' },
+            { name: '炒面', emoji: '🍜', category: '面食类' },
+            { name: '炒粉', emoji: '�', category: '面食类' },
+            { name: '热干面', emoji: '�', category: '面食类' },
+            { name: '螺蛳粉', emoji: '🍜', category: '面食类' },
+            { name: '桂林米粉', emoji: '�', category: '面食类' },
+            { name: '兰州拉面', emoji: '🍜', category: '面食类' },
+            { name: '过桥米线', emoji: '�', category: '面食类' },
+            { name: '火锅', emoji: '�', category: '火锅' },
+            { name: '麻辣烫', emoji: '�', category: '火锅' },
+            { name: '冒菜', emoji: '�', category: '火锅' },
+            { name: '串串香', emoji: '�', category: '火锅' },
+            { name: '涮羊肉', emoji: '🐑', category: '火锅' },
+            { name: '日式火锅', emoji: '�', category: '火锅' },
+            { name: '椰子鸡汤', emoji: '�', category: '火锅' },
+            { name: '奶茶', emoji: '�', category: '奶茶甜品' },
+            { name: '蛋糕', emoji: '🍰', category: '奶茶甜品' },
+            { name: '冰淇淋', emoji: '�', category: '奶茶甜品' },
+            { name: '抹茶冰淇淋', emoji: '🍵', category: '奶茶甜品' },
+            { name: '铜锣烧', emoji: '�', category: '奶茶甜品' },
+            { name: '大福', emoji: '�', category: '奶茶甜品' },
+            { name: '芒果糯米饭', emoji: '�', category: '奶茶甜品' },
+            { name: '菠萝炒饭', emoji: '�', category: '奶茶甜品' },
+            { name: '糖葫芦', emoji: '�', category: '奶茶甜品' },
+            { name: '汉堡', emoji: '�', category: '快餐' },
+            { name: '薯条', emoji: '�', category: '快餐' },
+            { name: '炸鸡', emoji: '🍗', category: '快餐' },
+            { name: '三明治', emoji: '🥪', category: '快餐' },
+            { name: '披萨', emoji: '�', category: '快餐' },
+            { name: '寿司', emoji: '�', category: '快餐' },
+            { name: '便当', emoji: '�', category: '快餐' },
+            { name: '寿司拼盘', emoji: '🍣', category: '快餐' },
+            { name: '刺身', emoji: '🍣', category: '日韩料理' },
+            { name: '天妇罗', emoji: '�', category: '日韩料理' },
+            { name: '味噌汤', emoji: '🍲', category: '日韩料理' },
+            { name: '味噌拉面', emoji: '🍜', category: '日韩料理' },
+            { name: '日式定食', emoji: '🍱', category: '日韩料理' },
+            { name: '鳗鱼寿司', emoji: '🍣', category: '日韩料理' },
+            { name: '三文鱼刺身', emoji: '🍣', category: '日韩料理' },
+            { name: '金枪鱼饭团', emoji: '🍙', category: '日韩料理' },
+            { name: '日式炸猪排', emoji: '🐷', category: '日韩料理' },
+            { name: '生姜烧肉', emoji: '�', category: '日韩料理' },
+            { name: '土豆炖牛肉', emoji: '🥘', category: '日韩料理' },
+            { name: '文字烧', emoji: '🥞', category: '日韩料理' },
+            { name: '大阪烧', emoji: '🥞', category: '日韩料理' },
+            { name: '章鱼小丸子', emoji: '🐙', category: '日韩料理' },
+            { name: '韩国烤肉', emoji: '🥩', category: '日韩料理' },
+            { name: '泡菜汤', emoji: '🍲', category: '日韩料理' },
+            { name: '年糕', emoji: '�', category: '日韩料理' },
+            { name: '沙拉', emoji: '🥗', category: '健康轻食' },
+            { name: '凯撒沙拉', emoji: '🥗', category: '健康轻食' },
+            { name: '日式沙拉', emoji: '🥗', category: '健康轻食' },
+            { name: '凉拌豆腐', emoji: '�', category: '健康轻食' },
+            { name: '茶碗蒸', emoji: '🥚', category: '健康轻食' },
+            { name: '纳豆', emoji: '🫘', category: '健康轻食' },
+            { name: '酸奶', emoji: '🥛', category: '健康轻食' },
+            { name: '水果', emoji: '�', category: '健康轻食' },
+            { name: '鸡胸肉', emoji: '🍗', category: '健康轻食' },
+            { name: '燕麦', emoji: '�', category: '健康轻食' },
+            { name: '沙拉碗', emoji: '🥗', category: '健康轻食' },
+            { name: '轻食便当', emoji: '🍱', category: '健康轻食' },
+            { name: '烧烤', emoji: '�', category: '夜宵' },
+            { name: '烤红薯', emoji: '�', category: '夜宵' },
+            { name: '臭豆腐', emoji: '🧈', category: '夜宵' },
+            { name: '鸭血粉丝汤', emoji: '�', category: '夜宵' },
+            { name: '羊肉串', emoji: '�', category: '夜宵' },
+            { name: '大盘鸡', emoji: '🍗', category: '夜宵' },
+            { name: '肉夹馍', emoji: '🥙', category: '夜宵' },
+            { name: '羊肉泡馍', emoji: '�', category: '夜宵' },
+            { name: '凉皮', emoji: '�', category: '夜宵' },
+            { name: '饺子', emoji: '�', category: '夜宵' },
+            { name: '包子', emoji: '🥟', category: '夜宵' },
+            { name: '小笼包', emoji: '�', category: '夜宵' },
+            { name: '生煎', emoji: '🥞', category: '夜宵' },
+            { name: '煎饼果子', emoji: '🥞', category: '夜宵' },
+            { name: '油条', emoji: '�', category: '夜宵' },
+            { name: '豆浆', emoji: '🥛', category: '夜宵' },
+            { name: '豆腐脑', emoji: '🧈', category: '夜宵' },
+            { name: '鸭脖', emoji: '🦆', category: '夜宵' },
+            { name: '卤味', emoji: '�', category: '夜宵' },
+            { name: '沙县小吃', emoji: '�', category: '夜宵' },
+            { name: '黄焖鸡', emoji: '🍗', category: '夜宵' },
+            { name: '自助餐', emoji: '🍖', category: '夜宵' },
+            { name: '铁板烧', emoji: '🥩', category: '夜宵' },
+            { name: '海鲜', emoji: '🦐', category: '夜宵' },
+            { name: '牛排', emoji: '🥩', category: '夜宵' },
+            { name: '奶油蘑菇汤', emoji: '�', category: '夜宵' },
+            { name: '法棍', emoji: '🥖', category: '夜宵' },
+            { name: '可颂', emoji: '�', category: '夜宵' },
+            { name: '冬阴功汤', emoji: '🍲', category: '夜宵' },
+            { name: '印度咖喱', emoji: '�', category: '夜宵' },
+            { name: '飞饼', emoji: '🥞', category: '夜宵' },
+            { name: '馒头', emoji: '🥖', category: '夜宵' },
+            { name: '花卷', emoji: '🥖', category: '夜宵' },
+            { name: '北京烤鸭', emoji: '🦆', category: '夜宵' },
+            { name: '爆肚', emoji: '�', category: '夜宵' },
+            { name: '驴打滚', emoji: '🟤', category: '夜宵' },
+            { name: '咖喱饭', emoji: '�', category: '夜宵' },
+            { name: '脆皮鸡饭', emoji: '🍗', category: '夜宵' },
+            { name: '卤肉饭', emoji: '🍚', category: '夜宵' },
+        ];
+
+        const categories = ['全部', '米饭类', '面食类', '火锅', '奶茶甜品', '快餐', '日韩料理', '健康轻食', '夜宵'];
+        let currentCategory = '全部';
+        let favorites = JSON.parse(localStorage.getItem('lunchFavorites')) || [];
+        let currentResult = null;
+
+        const categoryTabs = document.getElementById('categoryTabs');
+        const decideBtn1 = document.getElementById('decideBtn1');
+        const decideBtn2 = document.getElementById('decideBtn2');
+        const resultEmoji = document.getElementById('resultEmoji');
+        const resultText = document.getElementById('resultText');
+        const resultCategory = document.getElementById('resultCategory');
+        const stats = document.getElementById('stats');
+        const favoriteCount = document.getElementById('favoriteCount');
+        const favoritesList = document.getElementById('favoritesList');
+        const addFavoriteBtn = document.getElementById('addFavoriteBtn');
+
+        function init() {
+            renderCategories();
+            updateStats();
+            updateFavoriteCount();
+            renderFavorites();
+
+            decideBtn1.addEventListener('click', decide);
+            decideBtn2.addEventListener('click', decide);
+            addFavoriteBtn.addEventListener('click', addToFavorites);
+        }
+
+        function renderCategories() {
+            categoryTabs.innerHTML = categories.map(cat => `
+                <button class="category-tab ${cat === currentCategory ? 'active' : ''}" data-category="${cat}">
+                    ${cat}
+                </button>
+            `).join('');
+
+            categoryTabs.querySelectorAll('.category-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    currentCategory = tab.dataset.category;
+                    renderCategories();
+                    updateStats();
+                });
+            });
+        }
+
+        function getFilteredFoods() {
+            if (currentCategory === '全部') {
+                return foodData;
+            }
+            return foodData.filter(food => food.category === currentCategory);
+        }
+
+        function updateStats() {
+            const filtered = getFilteredFoods();
+            stats.textContent = `${currentCategory} · ${filtered.length} 种可选`;
+        }
+
+        function updateFavoriteCount() {
+            if (favorites.length === 0) {
+                favoriteCount.textContent = '还没有收藏';
+            } else {
+                favoriteCount.textContent = `已收藏 ${favorites.length} 种`;
+            }
+        }
+
+        function decide() {
+            const filtered = getFilteredFoods();
+            if (filtered.length === 0) {
+                resultText.textContent = '该分类暂无食物';
+                resultEmoji.textContent = '🍽️';
+                resultCategory.textContent = '';
+                currentResult = null;
+                addFavoriteBtn.style.display = 'none';
+                return;
+            }
+
+            decideBtn1.classList.add('shaking');
+            decideBtn2.classList.add('shaking');
+            setTimeout(() => {
+                decideBtn1.classList.remove('shaking');
+                decideBtn2.classList.remove('shaking');
+            }, 600);
+
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * filtered.length);
+                currentResult = filtered[randomIndex];
+                resultEmoji.textContent = currentResult.emoji;
+                resultText.textContent = currentResult.name;
+                resultCategory.textContent = currentResult.category;
+                addFavoriteBtn.style.display = 'block';
+            }, 300);
+        }
+
+        function addToFavorites() {
+            if (!currentResult) return;
+
+            const exists = favorites.some(f => f.name === currentResult.name);
+            if (exists) {
+                alert('已经在收藏列表里了~');
+                return;
+            }
+
+            favorites.push({ ...currentResult });
+            localStorage.setItem('lunchFavorites', JSON.stringify(favorites));
+            renderFavorites();
+            updateFavoriteCount();
+            alert('收藏成功！');
+        }
+
+        function removeFavorite(name) {
+            favorites = favorites.filter(f => f.name !== name);
+            localStorage.setItem('lunchFavorites', JSON.stringify(favorites));
+            renderFavorites();
+            updateFavoriteCount();
+        }
+
+        function renderFavorites() {
+            if (favorites.length === 0) {
+                favoritesList.innerHTML = '<div class="no-favorites">还没有收藏</div>';
+                return;
+            }
+
+            favoritesList.innerHTML = favorites.map(f => `
+                <div class="favorite-item">
+                    ${f.emoji} ${f.name} <span onclick="removeFavorite('${f.name}')">×</span>
+                </div>
+            `).join('');
+        }
+
+        init();
+    </script>
+</body>
+</html>
